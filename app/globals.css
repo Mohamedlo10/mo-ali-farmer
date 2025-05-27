@@ -24,7 +24,7 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
-  min-height: 100vh;
+  min-height: 98vh;
 }
 
 /* Responsive containers */
