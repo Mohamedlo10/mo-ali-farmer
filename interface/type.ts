@@ -11,6 +11,24 @@ export type Culture = {
   temps_maturation?: number | null;
   rendement_moyen?: number | null;
   description?: string | null;
+  id_zone?: number | null;
+  prix_moyen?: number | null;
+  saison?: string | null;
+  niveau_demande?: string | null;
+};
+
+// Item enrichi pour l'affichage dans le marché
+export type MarcheItem = {
+  id_zone: number;
+  id_culture: number;
+  prix_moyen?: number | null;
+  saison?: string | null;
+  niveau_demande?: string | null;
+  nom_culture: string;
+  type_culture: string;
+  nom_zone: string;
+  nom_pays: string;
+  nom_ville: string;
 };
 
 export type Sol = {
