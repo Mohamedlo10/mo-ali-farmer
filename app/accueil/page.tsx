@@ -21,8 +21,8 @@ export default function Accueil() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white py-10">
-      <h1 className="text-3xl font-bold mb-8 text-emerald-700">Bienvenue sur le tableau de bord agricole</h1>
-      <p className="mb-8 text-gray-700 text-lg text-center max-w-xl">
+      <h1 className="md:text-3xl text-lg font-bold mb-8 text-emerald-700">Bienvenue sur le tableau de bord agricole</h1>
+      <p className="mb-8 text-gray-700 md:text-lg text-sm text-center max-w-xl">
         Gérez vos produits, commandes, statistiques et bien plus depuis votre tableau de bord.
       </p>
       <div className="flex w-full max-w-4xl justify-center mb-8">

@@ -41,21 +41,21 @@ export default function MarchePage() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl text-black font-bold mb-4">Marché des produits agricoles prevision 2025</h1>
-      <div className="flex text-black flex-wrap gap-4 mb-6">
-        <select value={filters.id_zone} onChange={e => setFilters(f => ({ ...f, id_zone: e.target.value }))} className="border p-2 rounded">
+      <div className="flex flex-col sm:flex-row text-black flex-wrap gap-2 sm:gap-4 mb-6 w-full">
+        <select value={filters.id_zone} onChange={e => setFilters(f => ({ ...f, id_zone: e.target.value }))} className="border p-2 rounded w-full sm:w-auto">
           <option value="">Toutes les zones</option>
           {zones.map(z => (
             <option key={z.id_zone} value={z.id_zone}>{z.nom_zone}</option>
           ))}
         </select>
-        <select value={filters.id_culture} onChange={e => setFilters(f => ({ ...f, id_culture: e.target.value }))} className="border p-2 rounded">
+        <select value={filters.id_culture} onChange={e => setFilters(f => ({ ...f, id_culture: e.target.value }))} className="border p-2 rounded w-full sm:w-auto">
           <option value="">Toutes les cultures</option>
           {cultures.map(c => (
             <option key={c.id_culture} value={c.id_culture}>{c.nom}</option>
           ))}
         </select>
-        <input type="text" placeholder="Saison" value={filters.saison} onChange={e => setFilters(f => ({ ...f, saison: e.target.value }))} className="border p-2 rounded" />
-        <input type="text" placeholder="Recherche..." value={filters.search} onChange={e => setFilters(f => ({ ...f, search: e.target.value }))} className="border p-2 rounded flex-1" />
+        <input type="text" placeholder="Saison" value={filters.saison} onChange={e => setFilters(f => ({ ...f, saison: e.target.value }))} className="border p-2 rounded w-full sm:w-auto" />
+        <input type="text" placeholder="Recherche..." value={filters.search} onChange={e => setFilters(f => ({ ...f, search: e.target.value }))} className="border p-2 rounded flex-1 min-w-0" />
       </div>
       {loading ? (
         <div>Chargement...</div>
