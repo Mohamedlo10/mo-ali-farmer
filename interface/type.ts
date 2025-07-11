@@ -31,6 +31,19 @@ export type MarcheItem = {
   nom_ville: string;
 };
 
+
+// Type for zone data
+export type Zone = {
+  id_zone: number;
+  nom: string;
+  continent: string;
+  pays: string;
+  ville: string;
+};
+
+
+
+
 export type Sol = {
   id_sol: number;
   nom: string;
@@ -48,4 +61,23 @@ export type CultureSol = {
   id_sol: number;
   affinite: number;
   notes?: string | null;
+};
+
+// Type pour les propositions de plans d'optimisation
+export type PlanProposal = {
+  nom_plan: string;
+  description?: string;
+  parcelles: {
+    id_culture: number;
+    pourcentage: number;
+    couleur: string;
+    position_x: number;
+    position_y: number;
+    forme: string;
+  }[];
+  profit_estime: number;
+  niveau_risque: number;
+  superficie?: number;
+  largeur?: number;
+  longueur?: number;
 };
