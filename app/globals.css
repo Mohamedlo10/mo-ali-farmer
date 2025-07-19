@@ -3,19 +3,49 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Additional colors for the agricultural market */
+  --primary: #0f612d;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #374151;
+  --success: #0f612d;
+  --success-foreground: #ffffff;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --card: #ffffff;
+  --card-foreground: #c0c6d2;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #ffffff;
+    --foreground: #0f612d;
+    --primary: #0f612d;
+    --primary-foreground: #0f612d;
+    --secondary: #374151;
+    --secondary-foreground: #f9fafb;
+    --success: #0f612d;
+    --success-foreground: #ffffff;
+    --muted: #9ca3af;
+    --border: #0f612d;
+    --card: #ffffff;
+    --card-foreground: #0f612d;
   }
 }
 
@@ -104,3 +134,14 @@ button, .btn {
   }
 }
 
+/* Add fadeIn animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

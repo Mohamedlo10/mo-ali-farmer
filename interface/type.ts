@@ -4,7 +4,6 @@ export type Culture = {
   nom_scientifique?: string | null;
   type_culture: string;
   saison_plantation?: string | null;
-  besoin_eau: string;
   resistance_secheresse?: number | null;
   temperature_min?: number | null;
   temperature_max?: number | null;
@@ -12,9 +11,13 @@ export type Culture = {
   rendement_moyen?: number | null;
   description?: string | null;
   id_zone?: number | null;
+  couleur?: string | null;
   prix_moyen?: number | null;
   saison?: string | null;
+  img_url?: string | null;
+  affinite?: number | null;
   niveau_demande?: string | null;
+  besoin_eau?: string | null;
 };
 
 // Item enrichi pour l'affichage dans le marché
@@ -23,7 +26,10 @@ export type MarcheItem = {
   id_culture: number;
   prix_moyen?: number | null;
   saison?: string | null;
+  img_url?: string | null;
   niveau_demande?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
   nom_culture: string;
   type_culture: string;
   nom_zone: string;
@@ -64,20 +70,36 @@ export type CultureSol = {
 };
 
 // Type pour les propositions de plans d'optimisation
-export type PlanProposal = {
-  nom_plan: string;
-  description?: string;
-  parcelles: {
-    id_culture: number;
-    pourcentage: number;
-    couleur: string;
-    position_x: number;
-    position_y: number;
-    forme: string;
-  }[];
+export interface PlanProposal {
+  id_plan: number;
+  nom: string;
+  description: string | null;
+  superficie: number;
+  dimensions: {
+    width: number;  
+    height: number; 
+    unit: string;   
+  };
   profit_estime: number;
   niveau_risque: number;
-  superficie?: number;
-  largeur?: number;
-  longueur?: number;
-};
+  date_creation: string; 
+  image_base?: string;   
+  analyses: string | null;
+  parcelles: Parcelle[];
+}
+
+export interface Parcelle {
+  id_parcelle: string; // UUID
+  id_plan: number;
+  id_zone: number;
+  id_culture: number;
+  pourcentage: number;
+  geometrie: {
+    type: 'Polygon';
+    coordinates: number[][][]; 
+  };
+  culture:Culture;
+  proprietes?: {
+    [key: string]: any; // Pour les métadonnées supplémentaires
+  };
+}

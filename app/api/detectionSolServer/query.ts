@@ -1,12 +1,12 @@
 import { Culture, Sol } from "@/interface/type";
-import { createClient } from "@/lib/supabaseClient";
+import { createClientServer } from "@/lib/supabaseserver";
 
 // Fonction de détection de sol et cultures par attributs
-export async function detectSolEtCultures(
+export async function detectSolEtCulturesServer(
   { ph, humidite, salinite }: { ph: number; humidite: number; salinite: number }
 ) {
   // On cherche le sol le plus proche par similarité (distance euclidienne simple)
-  const { data: sols, error: solsError } = await createClient().from("sols").select("*");
+  const { data: sols, error: solsError } = await (await createClientServer()).from("sols").select("*");
   if (solsError) throw solsError;
   if (!sols || sols.length === 0) return { sol: null, cultures: [] };
 
@@ -30,8 +30,7 @@ export async function detectSolEtCultures(
   }
 
   // Récupérer les cultures associées à ce sol, triées par affinité décroissante
-    const { data: cultures, error: culturesError } = await createClient()
-    .from("culture_sol")
+    const { data: cultures, error: culturesError } = await (await createClientServer()).from("culture_sol")
     .select("*, culture: cultures(*)")
     .eq("id_sol", bestSol.id_sol)
     .order("affinite", { ascending: false });

@@ -3,6 +3,65 @@ import { createClient } from "@/lib/supabaseClient";
 
 const supabase = createClient();
 
+// Récupère toutes les cultures avec leur prix actuel (le plus récent dans culture_marches)
+export async function getCulturesWithCurrentPrice(): Promise<(Culture & { prix_actuel: number | null })[]> {
+  // On récupère toutes les cultures
+  const { data: cultures, error: culturesError } = await supabase.from("cultures").select("*");
+  if (culturesError) throw culturesError;
+  // Pour chaque culture, on récupère le dernier prix dans culture_marches (toutes zones)
+  const results: (Culture & { prix_actuel: number | null })[] = [];
+  for (const culture of cultures || []) {
+    const { data: prixData, error: prixError } = await supabase
+      .from("culture_marches")
+      .select("prix_moyen, startDate")
+      .eq("id_culture", culture.id_culture)
+      .order("startDate", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    let prix_actuel = null;
+    if (prixData && prixData.prix_moyen != null) {
+      prix_actuel = Number(prixData.prix_moyen);
+    }
+    results.push({ ...culture, prix_actuel });
+  }
+  return results;
+}
+
+// Récupère une culture par son id et les données de graphe associées
+export async function getCultureById(id: number | string): Promise<{ culture: Culture | null, chartData: { date: string, price: number }[] }> {
+  // Récupération de la culture (inclut img_url)
+  const { data: culture, error: cultureError } = await supabase.from("cultures").select("*").eq("id_culture", id).single();
+  if (cultureError) throw cultureError;
+  // Récupération des prix pour le graphe depuis culture_marches
+  let chartData: { date: string, price: number }[] = [];
+  const { data: marches, error: marchesError } = await supabase
+    .from("culture_marches")
+    .select("startDate, prix_moyen")
+    .eq("id_culture", id)
+    .order("startDate", { ascending: true });
+  if (!marchesError && marches) {
+    chartData = marches.filter((item: any) => item.startDate && item.prix_moyen !== null)
+      .map((item: any) => ({ date: item.startDate, price: Number(item.prix_moyen) }));
+  }
+  return { culture, chartData };
+}
+
+// Récupère les données de graphe associées à une culture
+export async function getStatsCultureById(id: number | string): Promise<{ chartData: { date: string, price: number }[] }> {
+  // Récupération des prix pour le graphe depuis culture_marches
+  let chartData: { date: string, price: number }[] = [];
+  const { data: marches, error: marchesError } = await supabase
+    .from("culture_marches")
+    .select("startDate, prix_moyen")
+    .eq("id_culture", id)
+    .order("startDate", { ascending: true });
+  if (!marchesError && marches) {
+    chartData = marches.filter((item: any) => item.startDate && item.prix_moyen !== null)
+      .map((item: any) => ({ date: item.startDate, price: Number(item.prix_moyen) }));
+  }
+  return { chartData };
+}
+
 export async function getCultures(): Promise<Culture[]> {
   const { data, error } = await supabase.from("cultures").select("*");
   if (error) throw error;

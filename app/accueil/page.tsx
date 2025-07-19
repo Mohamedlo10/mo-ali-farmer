@@ -1,77 +1,136 @@
 "use client";
-import { useEffect, useState } from "react";
-import { detectSolEtCultures } from "@/app/api/detection/query";
-import type { Sol, Culture } from "@/interface/type";
-import { getMarches } from "../api/marches/query";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { getPlans } from "@/app/api/plans/query";
+import { createClient } from "@/lib/supabaseClient";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { PlusIcon, LayoutIcon } from "lucide-react";
+import { PlanProposal } from "@/interface/type";
 
-import { getCultures } from "@/app/api/cultures/query";
-import { getSols } from "@/app/api/sols/query";
-import type { MarcheItem } from "@/interface/type";
-
-export default function MarchePage() {
-  const [marches, setMarches] = useState<MarcheItem[]>([]);
-  const [cultures, setCultures] = useState<any[]>([]);
-  const [zones, setZones] = useState<any[]>([]);
-  const [filters, setFilters] = useState({ id_zone: '', id_culture: '', saison: '', search: '' });
-  const [loading, setLoading] = useState(false);
+export default function PlansPage() {
+  const [plans, setPlans] = useState<PlanProposal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Récupère les cultures pour le filtre
-    getCultures().then(setCultures);
-    // Récupère toutes les entrées du marché pour extraire les zones uniques
-    getMarches().then(data => {
-      const uniqueZones = Array.from(new Set(data.map(item => JSON.stringify({ id_zone: item.id_zone, nom_zone: item.nom_zone }))))
-        .map(z => JSON.parse(z as string));
-      setZones(uniqueZones);
-    });
+    async function loadPlans() {
+      try {
+        const data = await getPlans();
+        setPlans(data);
+      } catch (err) {
+        console.error("Erreur lors du chargement des plans:", err);
+        setError("Impossible de charger les plans");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadPlans();
   }, []);
 
-  useEffect(() => {
-    setLoading(true);
-    getMarches({
-      id_zone: filters.id_zone ? Number(filters.id_zone) : undefined,
-      id_culture: filters.id_culture ? Number(filters.id_culture) : undefined,
-      saison: filters.saison || undefined,
-      search: filters.search || undefined,
-    })
-      .then(setMarches)
-      .finally(() => setLoading(false));
-  }, [filters]);
-
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl text-black font-bold mb-4">Marché des produits agricoles prevision 2025</h1>
-      <div className="flex flex-col sm:flex-row text-black flex-wrap gap-2 sm:gap-4 mb-6 w-full">
-        <select value={filters.id_zone} onChange={e => setFilters(f => ({ ...f, id_zone: e.target.value }))} className="border p-2 rounded w-full sm:w-auto">
-          <option value="">Toutes les zones</option>
-          {zones.map(z => (
-            <option key={z.id_zone} value={z.id_zone}>{z.nom_zone}</option>
-          ))}
-        </select>
-        <select value={filters.id_culture} onChange={e => setFilters(f => ({ ...f, id_culture: e.target.value }))} className="border p-2 rounded w-full sm:w-auto">
-          <option value="">Toutes les cultures</option>
-          {cultures.map(c => (
-            <option key={c.id_culture} value={c.id_culture}>{c.nom}</option>
-          ))}
-        </select>
-        <input type="text" placeholder="Saison" value={filters.saison} onChange={e => setFilters(f => ({ ...f, saison: e.target.value }))} className="border p-2 rounded w-full sm:w-auto" />
-        <input type="text" placeholder="Recherche..." value={filters.search} onChange={e => setFilters(f => ({ ...f, search: e.target.value }))} className="border p-2 rounded flex-1 min-w-0" />
+    <div className="container text-black mx-auto py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="md:text-3xl text-xl font-bold">Mes plans optimisés</h1>
+        <Link href="/accueil/nouveau">
+          <Button className="flex items-center bg-green-800 hover:bg-green-600 text-white font-bold cursor-pointer gap-2">
+            <PlusIcon size={16} />
+            Nouveau plan
+          </Button>
+        </Link>
       </div>
+
       {loading ? (
-        <div>Chargement...</div>
+        <div className="flex justify-center items-center h-40">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      ) : error ? (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+          {error}
+        </div>
+      ) : plans.length === 0 ? (
+        <div className="text-center py-12 border-2 border-dashed rounded-lg">
+          <LayoutIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-xl font-medium text-gray-900">
+            Aucun plan disponible
+          </h3>
+          <p className="mt-2 text-sm text-gray-500">
+            Commencez par créer un nouveau plan d'optimisation pour votre
+            terrain
+          </p>
+          <div className="w-full flex justify-center items-center text-white mt-6">
+            <Link href="/accueil/nouveau">
+              <Button className="flex items-center gap-2 text-white">
+                <PlusIcon size={16} />
+                Créer mon premier plan
+              </Button>
+            </Link>
+          </div>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {marches.map(item => (
-            <div key={item.id_zone + '-' + item.id_culture} className="border rounded p-4 shadow text-green-800 bg-white">
-              <div className="font-bold text-lg">{item.nom_culture}</div>
-              <div className="text-gray-600">{item.type_culture}</div>
-              <div className="mt-2">Zone: <span className="font-semibold">{item.nom_zone}</span> ({item.nom_ville}, {item.nom_pays})</div>
-              <div>Prix moyen: <span className="font-semibold">{item.prix_moyen ? item.prix_moyen + ' FCFA' : 'N/A'}</span></div>
-              <div>Saison: {item.saison || 'N/A'}</div>
-              <div>Niveau de demande: {item.niveau_demande || 'N/A'}</div>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {plans.map((plan) => (
+            <Card
+              key={plan.nom}
+              className="overflow-hidden hover:shadow-lg transition-shadow"
+            >
+              <CardHeader className="bg-green-50/5">
+                <CardTitle className="text-green-800 text-base">
+                  {plan.nom}
+                </CardTitle>
+                <CardDescription>{plan.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Profit estimé:</span>
+                    <span className="text-green-600 font-bold">
+                      {plan.profit_estime?.toLocaleString()} F CFA
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">
+                      Niveau de risque:
+                    </span>
+                    <div className="flex items-center">
+                      <div className="w-24 h-2 bg-gray-200 rounded overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-green-500 to-red-500"
+                          style={{
+                            width: `${((plan.niveau_risque || 0) / 10) * 100}%`,
+                          }}
+                        ></div>
+                      </div>
+                      <span className="ml-2 text-sm">
+                        {(plan.niveau_risque || 0) * 10}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="bg-gray-50">
+                <Link
+                  href={`/accueil/profile?id=${plan.id_plan}`}
+                  className="w-full"
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full bg-black hover:bg-black/80 text-white font-bold cursor-pointer"
+                  >
+                    Voir les détails
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
           ))}
-          {marches.length === 0 && <div className="col-span-full text-center text-gray-500">Aucun produit trouvé.</div>}
         </div>
       )}
     </div>

@@ -1,3 +1,4 @@
+'use client'
 import Link from "next/link";
 import { useState } from "react";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -8,9 +9,8 @@ import { useDialog } from "@/components/DialogContext";
 
 const navItems = [
   { label: "Accueil", href: "/accueil" },
-  { label: "Détection cultures", href: "/detection" },
-  { label: "Plans optimisés", href: "/plans" },
-  { label: "Cultures", href: "/cultures" },
+  { label: "Détection", href: "/detection" },
+  { label: "Marchés", href: "/marche" },
   { label: "Déconnexion", href: "/logout", isLogout: true },
 ];
 
@@ -51,7 +51,7 @@ export default function Navbar() {
                     key={item.href}
                     className={
                       "font-semibold px-3 py-2 rounded hover:bg-emerald-100 hover:text-emerald-700 transition-colors" +
-                      ((pathname === item.href || (item.href !== '/logout' && item.href !== '/accueil' && pathname.startsWith(item.href))) ? " bg-white text-emerald-800 font-bold" : " text-white")
+                      ((pathname === item.href || (item.href !== '/logout'  && pathname.startsWith(item.href))) ? " bg-white text-emerald-800 font-bold" : " text-white")
                     }
                     onClick={() => { openDialog(); setDialogInternalOpen(true); }}
                   >
@@ -63,7 +63,7 @@ export default function Navbar() {
                     href={item.href}
                     className={
                       "font-semibold px-3 py-2 cursor-pointer rounded hover:bg-emerald-100 hover:text-emerald-700 transition-colors" +
-                      ((pathname === item.href || (item.href !== '/logout' && item.href !== '/accueil' && pathname.startsWith(item.href))) ? " bg-white text-emerald-800 font-bold" : " text-white")
+                      ((pathname === item.href || (item.href !== '/logout'  && pathname.startsWith(item.href))) ? " bg-white text-emerald-800 font-bold" : " text-white")
                     }
                   >
                     {item.label}
@@ -94,7 +94,7 @@ export default function Navbar() {
                   key={item.href}
                   className={
                     "font-semibold px-3 py-2 rounded hover:bg-emerald-100 hover:text-emerald-700 transition-colors text-white text-left w-full" +
-                    ((pathname === item.href || (item.href !== '/logout' && item.href !== '/accueil' && pathname.startsWith(item.href))) ? " bg-white text-green-800 font-bold" : "")
+                    ((pathname === item.href || (item.href !== '/logout'  && pathname.startsWith(item.href))) ? " bg-white text-green-800 font-bold" : "")
                   }
                   onClick={() => { openDialog(); setDialogInternalOpen(true); setMenuOpen(false); }}
                 >
@@ -106,7 +106,7 @@ export default function Navbar() {
                   href={item.href}
                   className={
                     "font-semibold px-3 py-2 cursor-pointer rounded hover:bg-emerald-100 hover:text-emerald-700 transition-colors block w-full text-left" +
-                    ((pathname === item.href || (item.href !== '/logout' && item.href !== '/accueil' && pathname.startsWith(item.href))) ? " bg-white text-green-800 font-bold" : "")
+                    ((pathname === item.href || (item.href !== '/logout'  && pathname.startsWith(item.href))) ? " bg-white text-green-800 font-bold" : "")
                   }
                   onClick={() => setMenuOpen(false)}
                 >

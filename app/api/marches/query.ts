@@ -10,12 +10,14 @@ export type MarcheFilters = {
   id_culture?: number;
   saison?: string;
   search?: string;
+  startDate?: string;
+  endDate?: string;
 };
 
 export async function getMarches(filters: MarcheFilters = {}): Promise<MarcheItem[]> {
   let query = supabase
     .from("culture_marches")
-    .select(`id_zone, id_culture, prix_moyen, saison, niveau_demande, 
+    .select(`id_zone, id_culture, prix_moyen, saison, niveau_demande, startDate, endDate,
       cultures: id_culture (nom, type_culture),
       zones: id_zone (nom, pays, ville)
     `);
@@ -23,6 +25,8 @@ export async function getMarches(filters: MarcheFilters = {}): Promise<MarcheIte
   if (filters.id_zone) query = query.eq("id_zone", filters.id_zone);
   if (filters.id_culture) query = query.eq("id_culture", filters.id_culture);
   if (filters.saison) query = query.ilike("saison", `%${filters.saison}%`);
+  if (filters.startDate) query = query.gte("startDate", filters.startDate);
+  if (filters.endDate) query = query.lte("endDate", filters.endDate);
 
   const { data, error } = await query;
   if (error) throw error;
@@ -32,6 +36,8 @@ export async function getMarches(filters: MarcheFilters = {}): Promise<MarcheIte
     prix_moyen: item.prix_moyen,
     saison: item.saison,
     niveau_demande: item.niveau_demande,
+    startDate: item.startDate,
+    endDate: item.endDate,
     nom_culture: item.cultures?.nom || "",
     type_culture: item.cultures?.type_culture || "",
     nom_zone: item.zones?.nom || "",
