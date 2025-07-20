@@ -303,28 +303,6 @@ export async function generatePlans({
             id_zone: zone.id_zone,
             id_culture: parcelle.id_culture,
             pourcentage: parcelle.pourcentage,
-            // Créer la géométrie GeoJSON à partir des coordonnées grid
-            geometrie: {
-              type: "Polygon",
-              coordinates: [
-                [
-                  [parcelle.grid_x || 0, parcelle.grid_y || 0],
-                  [
-                    parcelle.grid_x + (parcelle.width || 1),
-                    parcelle.grid_y || 0,
-                  ],
-                  [
-                    parcelle.grid_x + (parcelle.width || 1),
-                    parcelle.grid_y + (parcelle.height || 1),
-                  ],
-                  [
-                    parcelle.grid_x || 0,
-                    parcelle.grid_y + (parcelle.height || 1),
-                  ],
-                  [parcelle.grid_x || 0, parcelle.grid_y || 0],
-                ],
-              ],
-            },
             // Ajouter les propriétés dans le champ proprietes
             proprietes: {
               couleur: parcelle.couleur || "#cccccc",
@@ -386,27 +364,6 @@ export async function generatePlans({
                 id_zone: zone.id_zone,
                 id_culture: parcelle.id_culture,
                 pourcentage: parcelle.pourcentage,
-                geometrie: {
-                  type: "Polygon",
-                  coordinates: [
-                    [
-                      [parcelle.grid_x || 0, parcelle.grid_y || 0],
-                      [
-                        parcelle.grid_x + (parcelle.width || 1),
-                        parcelle.grid_y || 0,
-                      ],
-                      [
-                        parcelle.grid_x + (parcelle.width || 1),
-                        parcelle.grid_y + (parcelle.height || 1),
-                      ],
-                      [
-                        parcelle.grid_x || 0,
-                        parcelle.grid_y + (parcelle.height || 1),
-                      ],
-                      [parcelle.grid_x || 0, parcelle.grid_y || 0],
-                    ],
-                  ],
-                },
                 proprietes: {
                   couleur: parcelle.couleur || "#cccccc",
                   forme: parcelle.forme || "rectangle",
@@ -533,7 +490,6 @@ export async function savePlan(planData: {
         id_culture: parcelle.id_culture,
         id_zone: planData.zoneId,
         pourcentage: parcelle.pourcentage,
-        geometrie: geometrie,
         proprietes: {
           couleur: parcelle.couleur,
           forme: parcelle.forme,
@@ -616,10 +572,6 @@ export async function getPlanById(id_plan: string): Promise<PlanProposal> {
         id_zone: p.id_zone,
         id_culture: p.id_culture,
         pourcentage: p.pourcentage,
-        geometrie: p.geometrie,
-        ...(p.proprietes && typeof p.proprietes === "object"
-          ? p.proprietes
-          : {}),
         culture: {
           id_culture: p.culture?.id_culture || 0,
           nom: p.culture?.nom || "Inconnue",

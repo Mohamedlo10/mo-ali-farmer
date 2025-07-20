@@ -94,10 +94,6 @@ export interface Parcelle {
   id_zone: number;
   id_culture: number;
   pourcentage: number;
-  geometrie: {
-    type: 'Polygon';
-    coordinates: number[][][]; 
-  };
   culture:Culture;
   proprietes?: {
     [key: string]: any; // Pour les métadonnées supplémentaires

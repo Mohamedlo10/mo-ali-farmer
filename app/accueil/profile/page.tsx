@@ -3,64 +3,24 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState, Suspense } from "react";
+import { Culture, PlanProposal } from "@/interface/type";
+import PlanVisualizer2D from "@/components/plans/PlanVisualizer2D";
+import PlanVisualizer3D from "@/components/plans/PlanVisualizer3D";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Eye, BarChart3, MapPin, TrendingUp, AlertTriangle, Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { getPlanWithParcelles } from "@/app/api/plans/query";
-import { createClient } from "@/lib/supabaseClient";
-
-import { Culture, PlanProposal } from "@/interface/type";
-
-// Importer les composants avec le chargement dynamique pour éviter les problèmes de SSR
-const Plan3D =
-  typeof window !== "undefined"
-    ? require("next/dynamic").default(
-        () => import("@/components/plans/PlanVisualizer3D"),
-        {
-          ssr: false,
-          loading: () => (
-            <div className="h-96 w-full bg-gray-100 flex items-center justify-center">
-              Chargement de la vue 3D...
-            </div>
-          ),
-        }
-      )
-    : () => null;
-
-const Plan2D =
-  typeof window !== "undefined"
-    ? require("next/dynamic").default(
-        () => import("@/components/plans/PlanVisualizer2D"),
-        {
-          ssr: false,
-          loading: () => (
-            <div className="h-64 w-full bg-gray-100 flex items-center justify-center">
-              Chargement de la vue 2D...
-            </div>
-          ),
-        }
-      )
-    : () => null;
 
 // Composant enfant qui utilise useSearchParams
-function PlanProfileContent() {
-  const searchParams = useSearchParams();
-  const idPlan = searchParams.get("id");
+const PlanProfileContent: React.FC = () => {
+  const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
   const [plan, setPlan] = useState<PlanProposal | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
-
-  // Fonction utilitaire pour extraire les cultures distinctes des parcelles
-  const getDistinctCultures = (parcelles: any[]): Culture[] => {
-    const seen = new Map<number, Culture>();
-    parcelles.forEach((p) => {
-      if (p.culture && !seen.has(p.culture.id_culture)) {
-        seen.set(p.culture.id_culture, p.culture);
-      }
-    });
-    return Array.from(seen.values());
-  };
-
-  const cultures = plan?.parcelles ? getDistinctCultures(plan.parcelles) : [];
+  const searchParams = useSearchParams();
+  const idPlan = searchParams.get("id");
 
   useEffect(() => {
     async function fetchPlan() {
@@ -78,128 +38,222 @@ function PlanProfileContent() {
       }
     }
     fetchPlan();
-  }, [idPlan]);
+  }, []);
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'XOF',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
 
-  // Rendu principal
+  const getRiskColor = (risk: number) => {
+    if (risk <= 3) return "plan-success";
+    if (risk <= 6) return "plan-warning";
+    return "destructive";
+  };
+
+  const getRiskLabel = (risk: number) => {
+    if (risk <= 3) return "Faible";
+    if (risk <= 6) return "Modéré";
+    return "Élevé";
+  };
+
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4 text-green-800">
-        Détail du plan optimisé
-      </h1>
-      {loading && <div>Chargement...</div>}
-      {error && <div className="text-red-600">{error}</div>}
-      {plan && (
-        <>
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2">{plan.nom}</h2>
-            <p className="mb-2 text-gray-700">{plan.description}</p>
-            <div className="text-sm text-gray-600 mb-2">
-              <strong>Superficie :</strong> {plan.superficie || "N/A"} m²
-              &nbsp;|
-              <strong> Largeur :</strong> {plan.dimensions?.width || "N/A"} m
-              &nbsp;|
-              <strong> Longueur :</strong> {plan.dimensions?.height || "N/A"} m
-            </div>
-            <div className="text-sm text-gray-600 mb-2">
-              <strong>Profit estimé :</strong> {plan.profit_estime} FCFA &nbsp;|
-              <strong>Niveau de risque :</strong> {plan.niveau_risque}/10
-            </div>
-          </div>
-          {/* Sélecteur 2D/3D */}
-          <div className="mb-8">
-            <div className="flex gap-2 mb-2">
-              <button
-                className={`px-3 py-1 rounded font-bold border ${
-                  viewMode === "3d"
-                    ? "bg-green-800 text-white"
-                    : "bg-white text-green-800 border-green-800"
-                }`}
-                onClick={() => setViewMode("3d")}
-              >
-                Vue 3D
-              </button>
-              <button
-                className={`px-3 py-1 rounded font-bold border ${
-                  viewMode === "2d"
-                    ? "bg-green-800 text-white"
-                    : "bg-white text-green-800 border-green-800"
-                }`}
-                onClick={() => setViewMode("2d")}
-              >
-                Vue 2D
-              </button>
-            </div>
-            <div className="border rounded-lg overflow-hidden">
-              {viewMode === "3d" ? (
-                <div className="h-[500px] w-full">
-                  <h3 className="font-bold mb-2 text-green-700">
-                    Visualisation 3D
-                  </h3>
-                  <Plan3D plan={plan} />
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto p-6 space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-plan-success bg-clip-text text-transparent">
+            Plan Agricole Optimisé
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Visualisation détaillée et analyse de votre plan d'optimisation agricole
+          </p>
+        </div>
+
+        {/* Plan Info Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="border-l-4 border-l-primary">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                Superficie
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">{plan?.superficie?.toLocaleString()} m²</div>
+              <p className="text-xs text-muted-foreground">
+                {plan?.dimensions?.width}m × {plan?.dimensions?.height}m
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-plan-success">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                Profit Estimé
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-plan-success">
+                {formatCurrency(plan?.profit_estime || 0)}
+              </div>
+              <p className="text-xs text-muted-foreground">Revenus annuels prévus</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4" style={{ borderLeftColor: `hsl(var(--${getRiskColor(plan?.niveau_risque || 0)}))` }}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Niveau de Risque
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <div className="text-2xl font-bold" style={{ color: `hsl(var(--${getRiskColor(plan?.niveau_risque || 0)}))` }}>
+                  {plan?.niveau_risque}/10
                 </div>
+                <Badge variant="outline" style={{ 
+                  borderColor: `hsl(var(--${getRiskColor(plan?.niveau_risque || 0)}))`,
+                  color: `hsl(var(--${getRiskColor(plan?.niveau_risque || 0)}))`
+                }}>
+                  {getRiskLabel(plan?.niveau_risque || 0)}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">Évaluation des risques</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-plan-info">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                Cultures
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-plan-info">{plan?.parcelles?.length}</div>
+              <p className="text-xs text-muted-foreground">Types de cultures planifiées</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Plan Description */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">{plan?.nom}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground leading-relaxed">{plan?.description}</p>
+          </CardContent>
+        </Card>
+
+        {/* Visualization Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Eye className="w-5 h-5" />
+                Visualisation du Plan
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  className={viewMode === "2d" ? "hover:bg-primary cursor-pointer text-white" : ""}
+                  variant={viewMode === "2d" ? "default" : "outline"}
+                  onClick={() => setViewMode("2d")}
+                  size="sm"
+                >
+                  Vue 2D
+                </Button>
+                <Button
+                  className={viewMode === "3d" ? "hover:bg-primary cursor-pointer text-white" : ""}
+                  variant={viewMode === "3d" ? "default" : "outline"}
+                  onClick={() => setViewMode("3d")}
+                  size="sm"
+                >
+                  Vue 3D
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[600px] rounded-lg overflow-hidden border border-border">
+              {viewMode === "2d" ? (
+                <PlanVisualizer2D plan={plan || null} />
               ) : (
-                <div className="h-[500px] w-full">
-                  <h3 className="font-bold mb-2 text-green-700">Vue 2D</h3>
-                  <Plan2D plan={plan} />
-                </div>
+                <PlanVisualizer3D plan={plan || null} />
               )}
             </div>
-          </div>{" "}
-          {/* <-- fermeture correcte du div.mb-8 */}
-          <div className="bg-gray-200 text-black rounded shadow p-4">
-            <h3 className="font-bold mb-2">Parcelles</h3>
-            {plan.parcelles && plan.parcelles.length > 0 ? (
-              plan.parcelles.map((parcelle: any, idx: number) => (
-                <div key={idx} className="mb-2 border-b pb-2">
-                  <p>
-                    <strong>Culture :</strong>{" "}
-                    {parcelle.culture?.nom || parcelle.id_culture}
-                  </p>
-                  <p>
-                    <strong>Pourcentage :</strong> {parcelle.pourcentage}%
-                  </p>
-                  {parcelle.grid_x !== undefined &&
-                    parcelle.grid_y !== undefined && (
-                      <p>
-                        <strong>Position :</strong> ({parcelle.grid_x},{" "}
-                        {parcelle.grid_y})
-                      </p>
-                    )}
-                  {parcelle.forme && (
-                    <p>
-                      <strong>Forme :</strong> {parcelle.forme}
-                    </p>
-                  )}
-                  {parcelle.couleur && (
-                    <p>
-                      <strong>Couleur :</strong>{" "}
-                      <span
-                        style={{ color: parcelle.couleur }}
-                        className="w-2 h-2  rounded-full inline-block font-extrabold"
-                      >
-                        {parcelle.couleur}
-                      </span>
-                    </p>
+          </CardContent>
+        </Card>
+
+        {/* Parcelles Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Détail des Parcelles</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {plan?.parcelles?.map((parcelle, index) => (
+                <div 
+                  key={index} 
+                  className="p-4 rounded-lg border border-border bg-card/50 transition-all duration-200 hover:shadow-md hover:scale-[1.02]"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-6 h-6 rounded-full border-2 border-white shadow-sm"
+                        style={{ backgroundColor: parcelle.culture?.couleur || "#10B981" }}
+                      />
+                      <div>
+                        <h4 className="font-semibold text-card-foreground">
+                          {parcelle.culture?.nom || `Culture ${index + 1}`}
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {parcelle.proprietes?.forme && `Forme: ${parcelle.proprietes?.forme}`}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="font-bold">
+                      {parcelle.pourcentage}%
+                    </Badge>
+                  </div>
+                  
+                  {(parcelle.proprietes?.grid_x !== undefined && parcelle.proprietes?.grid_y !== undefined) && (
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span>Position: ({parcelle.proprietes?.grid_x}, {parcelle.proprietes?.grid_y})</span>
+                      <span>•</span>
+                      <span>Surface: {Math.round(plan.superficie * parcelle.pourcentage / 100)} m²</span>
+                    </div>
                   )}
                 </div>
-              ))
-            ) : (
-              <div>Aucune parcelle trouvée pour ce plan.</div>
-            )}
-          </div>
-        </>
-      )}
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-}
+};
 
-// Composant wrapper avec Suspense
-export default function PlanProfilePage() {
+// Composant de chargement
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    <span className="ml-2">Chargement du plan...</span>
+  </div>
+);
+
+// Composant parent qui gère le Suspense
+const PlanProfile = () => {
   return (
-    <Suspense
-      fallback={<div className="container mx-auto p-6">Chargement...</div>}
-    >
+    <Suspense fallback={<LoadingFallback />}>
       <PlanProfileContent />
     </Suspense>
   );
-}
+};
+
+export default PlanProfile;

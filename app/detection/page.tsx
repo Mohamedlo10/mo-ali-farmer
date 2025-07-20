@@ -237,126 +237,83 @@ function SoilResultStep({
   return (
     <div className="space-y-6 text-black">
       <div>
-        <h2 className="text-xl font-semibold mb-1">
-          Résultat de l'analyse du sol
+        <h2 className="text-2xl font-bold text-emerald-800 mb-2">
+          Résultats de l'analyse du sol
         </h2>
-        <p className="text-green-800">
+        <p className="text-emerald-700">
           Voici le type de sol détecté et les cultures les plus adaptées.
         </p>
       </div>
 
-      <div className="bg-blue-50 p-4 rounded border border-blue-200 mb-4">
-        <h3 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Données du capteur ESP32 :
-        </h3>
-        {sensorData ? (
-          <>
-            <div className="grid grid-cols-3 gap-4 text-sm mb-3">
-              <div>
-                <span className="text-blue-700">pH:</span>{" "}
-                <span className="font-medium">{sensorData.ph.toFixed(1)}</span>
-              </div>
-              <div>
-                <span className="text-blue-700">Humidité:</span>{" "}
-                <span className="font-medium">{sensorData.humidite.toFixed(1)}%</span>
-              </div>
-              <div>
-                <span className="text-blue-700">Salinité:</span>{" "}
-                <span className="font-medium">{sensorData.salinite.toFixed(1)}‰</span>
-              </div>
+      {sensorData && (
+        <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+          <h3 className="font-medium text-emerald-800 mb-3 flex items-center gap-2">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h2a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            Données du capteur
+          </h3>
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <div className="bg-white p-3 rounded-lg border border-emerald-100">
+              <div className="text-emerald-600 font-medium">pH</div>
+              <div className="text-lg font-bold text-emerald-800">{sensorData.ph.toFixed(1)}</div>
             </div>
-            {sensorData.timestamp && (
-              <div className="text-xs text-blue-600 mb-3">
-                <strong>Dernière mise à jour :</strong>{" "}
-                {new Date(sensorData.timestamp).toLocaleString("fr-FR", {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit'
-                })}
-              </div>
-            )}
-            <div className="pt-3 border-t border-blue-200 mt-3">
-              <h4 className="text-sm font-medium text-blue-800 mb-1">Comparaison avec le sol détecté :</h4>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-blue-700 border-b">
-                    <th className="py-1">Paramètre</th>
-                    <th className="py-1 text-right">Capteur</th>
-                    <th className="py-1 text-right">Sol détecté</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-blue-100">
-                    <td className="py-1">pH</td>
-                    <td className="text-right">{sensorData.ph.toFixed(1)}</td>
-                    <td className="text-right">{soilData.sol?.ph?.toFixed(1) || 'N/A'}</td>
-                  </tr>
-                  <tr className="border-b border-blue-100">
-                    <td className="py-1">Humidité</td>
-                    <td className="text-right">{sensorData.humidite.toFixed(1)}%</td>
-                    <td className="text-right">{soilData.sol?.humidite?.toFixed(1) || 'N/A'}%</td>
-                  </tr>
-                  <tr>
-                    <td className="py-1">Salinité</td>
-                    <td className="text-right">{sensorData.salinite.toFixed(1)}‰</td>
-                    <td className="text-right">{soilData.sol?.salinite?.toFixed(1) || 'N/A'}‰</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="bg-white p-3 rounded-lg border border-emerald-100">
+              <div className="text-emerald-600 font-medium">Humidité</div>
+              <div className="text-lg font-bold text-emerald-800">{sensorData.humidite.toFixed(1)}%</div>
             </div>
-            <div className="pt-3 mt-3 border-t border-blue-200">
-              <p className="text-xs text-blue-600">
-                <strong>Note :</strong> Les données du capteur peuvent différer
-                des valeurs de référence du sol détecté en raison des variations
-                locales, de la précision des capteurs et des conditions environnementales.
-              </p>
+            <div className="bg-white p-3 rounded-lg border border-emerald-100">
+              <div className="text-emerald-600 font-medium">Salinité</div>
+              <div className="text-lg font-bold text-emerald-800">{sensorData.salinite.toFixed(1)}‰</div>
             </div>
-          </>
-        ) : (
-          <div className="text-blue-600 text-sm">
-            <p>Aucune donnée du capteur disponible.</p>
-            <p className="text-xs mt-1">
-              Utilisez le bouton "Détecter avec le capteur" pour recevoir des
-              données.
-            </p>
           </div>
-        )}
+          {sensorData.timestamp && (
+            <div className="mt-3 text-xs text-emerald-600">
+              <span className="font-medium">Dernière mise à jour :</span>{' '}
+              {new Date(sensorData.timestamp).toLocaleString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-emerald-100">
+        <h3 className="text-xl font-semibold text-emerald-800 mb-4">
+          Détails du sol détecté
+        </h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-emerald-50 p-4 rounded-lg">
+              <div className="text-emerald-600 text-sm font-medium">Type de sol</div>
+              <div className="text-lg font-semibold text-emerald-800">{soilData.sol.nom}</div>
+            </div>
+            <div className="bg-emerald-50 p-4 rounded-lg">
+              <div className="text-emerald-600 text-sm font-medium">pH du sol</div>
+              <div className="text-lg font-semibold text-emerald-800">{soilData.sol.ph?.toFixed(1) || 'N/A'}</div>
+            </div>
+            <div className="bg-emerald-50 p-4 rounded-lg">
+              <div className="text-emerald-600 text-sm font-medium">Humidité</div>
+              <div className="text-lg font-semibold text-emerald-800">
+                {soilData.sol.humidite?.toFixed(1) || 'N/A'}%
+              </div>
+            </div>
+          </div>
+          
+          {soilData.sol.description && (
+            <div className="bg-emerald-50 p-4 rounded-lg">
+              <h4 className="text-emerald-700 font-medium mb-2">Description</h4>
+              <p className="text-emerald-800">{soilData.sol.description}</p>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="bg-green-50 p-4 rounded border border-green-200">
-        <h3 className="font-medium text-green-800">
-          Sol détecté: {soilData.sol.nom}
-        </h3>
-        <div className="mt-2 grid grid-cols-3 gap-2 text-sm">
-          <div>
-            <span className="text-green-800">pH:</span>{" "}
-            <span className="font-medium">{soilData.sol.ph}</span>
-          </div>
-          <div>
-            <span className="text-green-800">Humidité:</span>{" "}
-            <span className="font-medium">{soilData.sol.humidite}%</span>
-          </div>
-          <div>
-            <span className="text-green-800">Salinité:</span>{" "}
-            <span className="font-medium">{soilData.sol.salinite}‰</span>
-          </div>
-        </div>
-        {soilData.sol.description && (
-          <p className="mt-2 text-sm text-green-700">
-            {soilData.sol.description}
-          </p>
-        )}
-      </div>
+
 
       <div>
         <h3 className="font-medium mb-2">Cultures recommandées par affinité</h3>
@@ -615,9 +572,7 @@ const DetectionContent = () => {
 
   return (
     <div className="max-w-2xl mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-6 text-emerald-800 text-center">
-        Détection du sol et des cultures adaptées
-      </h1>
+   
 
       {currentStep === "detection" ? (
         <div className="bg-white rounded-xl shadow p-6">

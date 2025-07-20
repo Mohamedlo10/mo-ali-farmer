@@ -1,89 +1,98 @@
+import React from 'react';
+import { PlanProposal } from '@/interface/type';
 
-'use client'
-import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
-import { useMemo } from 'react'
-import L from 'leaflet'
-import type { Feature, GeoJsonProperties, Geometry, FeatureCollection } from 'geojson'
-import { PlanProposal, Parcelle } from '@/interface/type'
+interface PlanVisualizer2DProps {
+  plan: PlanProposal | null;
+}
 
-export default function Plan2D({ plan }: { plan: PlanProposal }) {
-  // Définir le type complet pour les features
-  interface ParcelleFeature extends Feature<Geometry, GeoJsonProperties> {
-    properties: {
-      id_parcelle: string
-      id_culture: number
-      couleur: string
-      pourcentage: number
-    }
-  }
+const PlanVisualizer2D: React.FC<PlanVisualizer2DProps> = ({ plan }) => {
+  const colors = [
+    '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6',
+    '#F97316', '#06B6D4', '#84CC16', '#EC4899', '#6366F1'
+  ];
 
-  // Créer un FeatureCollection valide
-  const geoJsonData: FeatureCollection<Geometry, GeoJsonProperties> = useMemo(() => ({
-    type: 'FeatureCollection',
-    features: plan.parcelles.map((parcelle: Parcelle) => ({
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: parcelle.geometrie.coordinates
-      },
-      properties: {
-        id_parcelle: parcelle.id_parcelle,
-        id_culture: parcelle.id_culture,
-        couleur: parcelle.culture?.couleur || '#cccccc',
-        pourcentage: parcelle.pourcentage
+  const gridSize = 8;
+  const cellSize = 40;
+
+  // Create a grid representation
+  const createGrid = () => {
+    const grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(null));
+    
+    plan?.parcelles.forEach((parcelle, index) => {
+      const color = parcelle.culture?.couleur || colors[index % colors.length];
+      const startX = parcelle.proprietes?.grid_x || 0;
+      const startY = parcelle.proprietes?.grid_y || 0;
+      
+      // Calculate how many cells this parcelle should occupy based on percentage
+      const totalCells = gridSize * gridSize;
+      const parcelleSize = Math.ceil((parcelle.pourcentage / 100) * totalCells);
+      
+      // Fill grid cells for this parcelle
+      let cellsFilled = 0;
+      for (let y = startY; y < gridSize && cellsFilled < parcelleSize; y++) {
+        for (let x = startX; x < gridSize && cellsFilled < parcelleSize; x++) {
+          if (grid[y] && grid[y][x] === null) {
+            grid[y][x] = {
+              culture: parcelle.culture?.nom || `Culture ${index + 1}`,
+              color: color,
+              percentage: parcelle.pourcentage
+            };
+            cellsFilled++;
+          }
+        }
       }
-    }))
-  }), [plan.parcelles])
+    });
+    
+    return grid;
+  };
 
-  const center: L.LatLngTuple = useMemo(() => [
-    plan.dimensions.height / 2, 
-    plan.dimensions.width / 2
-  ], [plan.dimensions])
-
-  const bounds: L.LatLngBoundsLiteral = useMemo(() => [
-    [0, 0],
-    [plan.dimensions.height, plan.dimensions.width]
-  ], [plan.dimensions])
-
-  const parcelleStyle = (feature?: ParcelleFeature) => ({
-    fillColor: feature?.properties?.couleur || '#cccccc',
-    fillOpacity: 0.7,
-    color: '#000',
-    weight: 1,
-  })
+  const grid = createGrid();
 
   return (
-    <div className="h-full w-full">
-      <MapContainer
-        center={center}
-        zoom={13}
-        style={{ height: '100%', width: '100%' }}
-        crs={L.CRS.Simple}
-        bounds={bounds}
-      >
-        <TileLayer
-          url={plan.image_base || '/default-plan.png'}
-          bounds={bounds}
-          noWrap
-        />
-        
-        <GeoJSON
-          key={plan.id_plan}
-          data={geoJsonData}
-          style={parcelleStyle}
-          onEachFeature={(feature, layer) => {
-            if (feature.properties) {
-              layer.bindTooltip(
-                `Parcelle: ${feature.properties.id_parcelle}<br>
-                 Culture: ${feature.properties.id_culture}<br>
-                 Couverture: ${feature.properties.pourcentage}%`,
-                { permanent: false }
-              )
-            }
-          }}
-        />
-      </MapContainer>
+    <div className="w-full h-full flex flex-col items-center justify-center bg-accent/20 rounded-lg p-6">
+      <div className="grid grid-cols-8 gap-1 mb-6" style={{ 
+        width: gridSize * cellSize + (gridSize - 1) * 4,
+        height: gridSize * cellSize + (gridSize - 1) * 4 
+      }}>
+        {grid.map((row, y) =>
+          row.map((cell, x) => (
+            <div
+              key={`${x}-${y}`}
+              className="border border-border rounded transition-all duration-200 hover:scale-105 hover:shadow-lg"
+              style={{
+                width: cellSize,
+                height: cellSize,
+                backgroundColor: cell ? cell.color : '#f3f4f6',
+                opacity: cell ? 0.8 : 0.3
+              }}
+              title={cell ? `${cell.culture} (${cell.percentage}%)` : 'Terrain libre'}
+            >
+              {cell && (
+                <div className="w-full h-full flex items-center justify-center text-xs font-bold text-white">
+                  {cell.percentage}%
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+      
+      {/* Legend */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 w-full max-w-md">
+        {plan?.parcelles.map((parcelle, index) => (
+          <div key={index} className="flex items-center gap-2 bg-card p-2 rounded-md shadow-sm">
+            <div
+              className="w-4 h-4 rounded-full border border-border"
+              style={{ backgroundColor: parcelle.culture?.couleur || colors[index % colors.length] }}
+            />
+            <span className="text-xs font-medium text-card-foreground truncate">
+              {parcelle.culture?.nom || `Culture ${index + 1}`}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default PlanVisualizer2D;

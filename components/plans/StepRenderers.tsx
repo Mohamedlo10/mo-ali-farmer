@@ -697,6 +697,7 @@ export function SoilDetectionStep({
   isDetectingSoil,
   onSensorDetection,
   onSoilDetection,
+  sensorData,
 }: {
   ph: number;
   setPh: (value: number) => void;
@@ -708,24 +709,27 @@ export function SoilDetectionStep({
   isDetectingSoil: boolean;
   onSensorDetection: () => void;
   onSoilDetection: () => void;
+  sensorData?: { ph: number; humidite: number; salinite: number; timestamp?: number } | null;
 }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl text-green-800 font-semibold mb-2">
-          Détection du sol
+        <h2 className="text-2xl font-bold text-emerald-800 mb-2">
+          Analyse du sol
         </h2>
-        <p className="text-green-800">
-          Entrez les caractéristiques du sol pour déterminer les cultures les
-          plus adaptées.
+        <p className="text-emerald-700">
+          Entrez manuellement les caractéristiques du sol ou utilisez le capteur pour une détection automatique.
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div>
-          <label className="block text-red-700 text-sm font-medium mb-1">
-            pH du sol (0-14)
-          </label>
+          <div className="flex justify-between items-center mb-1">
+            <label className="block text-emerald-800 text-sm font-medium">
+              pH du sol (0-14)
+            </label>
+            <span className="text-emerald-600 font-medium">{ph.toFixed(1)}</span>
+          </div>
           <input
             type="range"
             min="0"
@@ -743,9 +747,12 @@ export function SoilDetectionStep({
         </div>
 
         <div>
-          <label className="block text-red-600 text-sm font-medium mb-1">
-            Taux d'humidité (%)
-          </label>
+          <div className="flex justify-between items-center mb-1">
+            <label className="block text-emerald-800 text-sm font-medium">
+              Taux d'humidité (%)
+            </label>
+            <span className="text-emerald-600 font-medium">{humidite.toFixed(1)}%</span>
+          </div>
           <input
             type="range"
             min="0"
@@ -763,9 +770,12 @@ export function SoilDetectionStep({
         </div>
 
         <div>
-          <label className="block text-red-600 text-sm font-medium mb-1">
-            Salinité (‰)
-          </label>
+          <div className="flex justify-between items-center mb-1">
+            <label className="block text-emerald-800 text-sm font-medium">
+              Salinité (‰)
+            </label>
+            <span className="text-emerald-600 font-medium">{salinite.toFixed(1)}‰</span>
+          </div>
           <input
             type="range"
             min="0"
@@ -793,28 +803,52 @@ export function SoilDetectionStep({
         </div>
       )}
 
-      <div className="flex justify-between items-center mt-6">
+      <div className="flex flex-col sm:flex-row gap-4 mt-8">
+        <div className="flex-1">
+          <button
+            className={`w-full h-12 flex items-center justify-center gap-2 rounded-lg font-semibold transition-all duration-300 ${
+              isListeningForSensor
+                ? 'bg-red-600 hover:bg-red-700 text-white'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-700'
+            }`}
+            onClick={onSensorDetection}
+            disabled={isDetectingSoil}
+          >
+            {isListeningForSensor ? (
+              <>
+                <Loader size="small" color="text-white" />
+                <span>Arrêter la détection</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+                <span>Détecter avec le capteur</span>
+              </>
+            )}
+          </button>
+          {isListeningForSensor && (
+            <p className="mt-2 text-sm text-emerald-700 text-center">
+              En attente des données du capteur...
+            </p>
+          )}
+        </div>
+        
         <button
-          className="bg-blue-600 hover:bg-blue-700 cursor-pointer font-bold h-10 md:text-base text-xs w-56 flex justify-center items-center text-white px-4 py-2 rounded disabled:bg-blue-300"
-          onClick={onSensorDetection}
-          disabled={isDetectingSoil}
-        >
-          {isListeningForSensor ? (
-            <Loader size="small" color="text-white" />
-          ) : null}
-          {isListeningForSensor
-            ? "Arrêter la détection"
-            : "Détecter avec le capteur"}
-        </button>
-        <button
-          className="bg-black hover:bg-green-700 cursor-pointer font-bold h-10 w-40 flex justify-center items-center text-white px-4 py-2 rounded disabled:bg-gray-400"
+          className="h-12 px-6 bg-emerald-800 hover:bg-emerald-900 text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
           onClick={onSoilDetection}
           disabled={isDetectingSoil || isListeningForSensor}
         >
           {isDetectingSoil ? (
             <Loader size="small" color="text-white" />
           ) : (
-            "Analyser le sol"
+            <>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <span>Analyser le sol</span>
+            </>
           )}
         </button>
       </div>
@@ -824,6 +858,7 @@ export function SoilDetectionStep({
 
 export function SoilResultStep({
   soilData,
+  sensorData,
   onContinue,
   onBack,
 }: {
@@ -831,18 +866,30 @@ export function SoilResultStep({
     sol: Sol | null;
     cultures: (Culture & { affinite: number })[];
   };
+  sensorData?: {
+    ph: number;
+    humidite: number;
+    salinite: number;
+    timestamp?: number;
+  } | null;
   onContinue: () => void;
   onBack: () => void;
 }) {
   if (!soilData.sol) {
     return (
-      <div className="text-center text-black py-8">
-        <h3 className="text-lg font-medium mb-2">Aucun sol correspondant</h3>
-        <p className="text-green-800">
-          Impossible de déterminer le type de sol avec les caractéristiques
-          fournies.
+      <div className="text-center py-12">
+        <div className="mx-auto w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
+          <AlertTriangleIcon className="w-8 h-8 text-red-600" />
+        </div>
+        <h3 className="text-xl font-semibold text-gray-800 mb-2">Aucun sol correspondant</h3>
+        <p className="text-gray-600 max-w-md mx-auto mb-6">
+          Impossible de déterminer le type de sol avec les caractéristiques fournies.
+          Veuillez vérifier les valeurs et réessayer.
         </p>
-        <Button onClick={onBack} className="mt-4">
+        <Button 
+          onClick={onBack} 
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+        >
           Réessayer
         </Button>
       </div>
@@ -850,82 +897,169 @@ export function SoilResultStep({
   }
 
   return (
-    <div className="space-y-6 text-black">
-      <div>
-        <h2 className="text-xl font-semibold mb-1">
-          Résultat de l'analyse du sol
+    <div className="space-y-6">
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-emerald-800 mb-2">
+          Analyse du sol terminée
         </h2>
-        <p className="text-green-800">
-          Voici le type de sol détecté et les cultures les plus adaptées.
+        <p className="text-emerald-700">
+          Voici le type de sol détecté et les cultures les plus adaptées à vos caractéristiques.
         </p>
       </div>
 
-      <div className="bg-green-50 p-4 rounded border border-green-200">
-        <h3 className="font-medium text-green-800">
-          Sol détecté: {soilData.sol.nom}
-        </h3>
-        <div className="mt-2 grid grid-cols-3 gap-2 text-sm">
-          <div>
-            <span className="text-green-800">pH:</span>{" "}
-            <span className="font-medium">{soilData.sol.ph}</span>
+      {sensorData && (
+        <div className="bg-emerald-50 p-5 rounded-xl border border-emerald-100">
+          <h3 className="font-medium text-emerald-800 text-lg mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h2a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            Données du capteur
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white p-4 rounded-lg border border-emerald-100">
+              <div className="text-emerald-600 text-sm font-medium mb-1">pH du sol</div>
+              <div className="text-2xl font-bold text-emerald-800">{sensorData.ph.toFixed(1)}</div>
+            </div>
+            <div className="bg-white p-4 rounded-lg border border-emerald-100">
+              <div className="text-emerald-600 text-sm font-medium mb-1">Humidité</div>
+              <div className="text-2xl font-bold text-emerald-800">{sensorData.humidite.toFixed(1)}%</div>
+            </div>
+            <div className="bg-white p-4 rounded-lg border border-emerald-100">
+              <div className="text-emerald-600 text-sm font-medium mb-1">Salinité</div>
+              <div className="text-2xl font-bold text-emerald-800">{sensorData.salinite.toFixed(1)}‰</div>
+            </div>
           </div>
-          <div>
-            <span className="text-green-800">Humidité:</span>{" "}
-            <span className="font-medium">{soilData.sol.humidite}%</span>
-          </div>
-          <div>
-            <span className="text-green-800">Salinité:</span>{" "}
-            <span className="font-medium">{soilData.sol.salinite}‰</span>
-          </div>
+          {sensorData.timestamp && (
+            <div className="mt-3 text-xs text-emerald-600">
+              <span className="font-medium">Dernière mise à jour :</span>{' '}
+              {new Date(sensorData.timestamp).toLocaleString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </div>
+          )}
         </div>
-        {soilData.sol.description && (
-          <p className="mt-2 text-sm text-green-700">
-            {soilData.sol.description}
-          </p>
-        )}
-      </div>
+      )}
 
-      <div>
-        <h3 className="font-medium mb-2">Cultures recommandées par affinité</h3>
-        <div className="border rounded divide-y">
-          {soilData.cultures.slice(0, 8).map((culture) => (
-            <div key={culture.id_culture} className="p-3 flex items-center">
-              <div className="flex-1">
-                <h4 className="font-medium">{culture.nom}</h4>
-                <p className="text-sm text-green-800">{culture.type_culture}</p>
-              </div>
-              <div className="ml-4">
-                <div className="flex items-center">
-                  <div className="w-24 h-2 bg-gray-200 rounded overflow-hidden">
-                    <div
-                      className="h-full bg-green-500"
-                      style={{ width: `${(culture.affinite / 10) * 100}%` }}
-                    ></div>
-                  </div>
-                  <span className="ml-2 text-sm font-medium">
-                    {culture.affinite}/10
-                  </span>
-                </div>
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-emerald-100">
+        <h3 className="text-xl font-semibold text-emerald-800 mb-4">
+          Détails du sol détecté
+        </h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-emerald-50 p-4 rounded-lg">
+              <div className="text-emerald-600 text-sm font-medium">Type de sol</div>
+              <div className="text-lg font-semibold text-emerald-800">{soilData.sol.nom}</div>
+            </div>
+            <div className="bg-emerald-50 p-4 rounded-lg">
+              <div className="text-emerald-600 text-sm font-medium">pH du sol</div>
+              <div className="text-lg font-semibold text-emerald-800">
+                {soilData.sol.ph !== null && soilData.sol.ph !== undefined 
+                  ? soilData.sol.ph.toFixed(1) 
+                  : 'N/A'}
               </div>
             </div>
-          ))}
+            <div className="bg-emerald-50 p-4 rounded-lg">
+              <div className="text-emerald-600 text-sm font-medium">Humidité</div>
+              <div className="text-lg font-semibold text-emerald-800">
+                {soilData.sol.humidite !== null && soilData.sol.humidite !== undefined 
+                  ? `${soilData.sol.humidite.toFixed(1)}%` 
+                  : 'N/A'}
+              </div>
+            </div>
+          </div>
+          
+          {soilData.sol.description && (
+            <div className="bg-emerald-50 p-4 rounded-lg">
+              <h4 className="text-emerald-700 font-medium mb-2">Description</h4>
+              <p className="text-emerald-800">{soilData.sol.description}</p>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="flex justify-between">
+      <div className="mt-6">
+        <h3 className="text-lg font-semibold text-emerald-800 mb-4">Cultures recommandées</h3>
+        <div className="space-y-3 w-full">
+          {soilData.cultures.slice(0, 8).map((culture) => {
+            const affinitePercentage = (culture.affinite / 10) * 100;
+            let bgColor = 'bg-emerald-100';
+            let textColor = 'text-emerald-800';
+            
+            if (affinitePercentage >= 80) {
+              bgColor = 'bg-emerald-50';
+            } else if (affinitePercentage >= 50) {
+              bgColor = 'bg-amber-50';
+              textColor = 'text-amber-800';
+            } else {
+              bgColor = 'bg-red-50';
+              textColor = 'text-red-800';
+            }
+            
+            return (
+              <div 
+                key={culture.id_culture} 
+                className={`p-4 rounded-lg border ${bgColor} border-opacity-50 transition-all hover:shadow-sm w-full overflow-hidden`}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-gray-900 truncate">{culture.nom}</h4>
+                    <p className="text-sm text-gray-500 truncate">{culture.type_culture}</p>
+                  </div>
+                  <div className="w-full sm:w-48 flex-shrink-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-gray-500 whitespace-nowrap">Affinité</span>
+                      <span className={`text-sm font-semibold ${textColor} whitespace-nowrap ml-2`}>
+                        {culture.affinite}/10
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full ${
+                          affinitePercentage >= 80 ? 'bg-emerald-500' : 
+                          affinitePercentage >= 50 ? 'bg-amber-400' : 'bg-red-400'
+                        }`}
+                        style={{ 
+                          width: `${Math.min(affinitePercentage, 100)}%`,
+                          maxWidth: '100%'
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-between gap-4 mt-8 pt-6 border-t border-gray-100">
         <Button
           variant="outline"
-          className="text-white font-bold bg-black hover:bg-red-700 cursor-pointer"
+          className="h-12 px-6 border-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
           onClick={onBack}
         >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
           Retour
         </Button>
         <Button
-          variant="outline"
-          className="text-white font-bold bg-green-800 hover:bg-green-700 cursor-pointer"
+          className="h-12 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
           onClick={onContinue}
         >
           Continuer
+          <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
         </Button>
       </div>
     </div>

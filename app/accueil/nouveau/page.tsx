@@ -254,7 +254,6 @@ function NewPlanContent() {
           grid_y: parcelle.proprietes?.grid_y ?? 0,
           width: parcelle.proprietes?.width ?? 1,
           height: parcelle.proprietes?.height ?? 1,
-          geometrie: parcelle.geometrie, // Inclure la géométrie existante
         })),
       });
 
