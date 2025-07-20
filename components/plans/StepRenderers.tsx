@@ -501,7 +501,7 @@ export function PlanSelectionStep({
                     <TabsTrigger value="3d">Vue 3D</TabsTrigger>
                   </TabsList>
                   <TabsContent value="2d" className="p-4">
-                    <div className="h-64 w-full">
+                    <div className="h-96 w-full">
                       <Plan2D plan={plan} />
                     </div>
                   </TabsContent>

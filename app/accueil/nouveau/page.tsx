@@ -82,7 +82,12 @@ function NewPlanContent() {
   const [generating, setGenerating] = useState(false);
   const [planProposals, setPlanProposals] = useState<PlanProposal[]>([]);
   const [generationError, setGenerationError] = useState<string | null>(null);
-
+  const [sensorData, setSensorData] = useState<{
+    ph: number;
+    humidite: number;
+    salinite: number;
+    timestamp?: number;
+  } | null>(null);
   // Load zones on component mount
   useEffect(() => {
     async function loadZones() {
@@ -135,18 +140,106 @@ function NewPlanContent() {
       // Start polling
       setIsListeningForSensor(true);
       const intervalId = setInterval(async () => {
-        try {
-          const response = await fetch("/api/sols/sensor");
-          if (response.ok) {
-            const data = await response.json();
-            if (data && data.sol) {
-              setSoilData(data);
-              if (pollingIntervalId) clearInterval(pollingIntervalId);
-              setIsListeningForSensor(false);
-              setPollingIntervalId(null);
-              setCurrentStep(STEPS.SOIL_RESULT);
-            }
-          }
+         try {
+                  const response = await fetch("/api/sols/sensor");
+                  if (response.ok) {
+                    const data = await response.json();
+                    console.log("Données reçues du capteur:", data);
+        
+                    // Vérifier si la réponse contient les données du capteur
+                    if (data && (data.sol || data.ph !== undefined)) {
+                      // Si la réponse contient à la fois les résultats et les données du capteur
+                      if (data.sensorData) {
+                        console.log("Données complètes reçues:", data);
+                        
+                        // Extraire les données du capteur de la réponse
+                        const { sensorData: sensorDataFromApi, ...soilResult } = data;
+                        
+                        // Stocker les données brutes du capteur
+                        console.log("Données du capteur:", sensorDataFromApi);
+                        setSensorData({
+                          ph: sensorDataFromApi.ph,
+                          humidite: sensorDataFromApi.humidite,
+                          salinite: sensorDataFromApi.salinite,
+                          timestamp: sensorDataFromApi.timestamp || Date.now()
+                        });
+                        
+                        // Mettre à jour les contrôles avec les données du capteur
+                        setPh(sensorDataFromApi.ph);
+                        setHumidite(sensorDataFromApi.humidite);
+                        setSalinite(sensorDataFromApi.salinite);
+                        
+                        // Mettre à jour les données du sol
+                        console.log("Résultats de détection:", soilResult);
+                        setSoilData(soilResult);
+                        
+                        // Arrêter le polling et passer à l'étape des résultats
+                        if (pollingIntervalId) clearInterval(pollingIntervalId);
+                        setIsListeningForSensor(false);
+                        setPollingIntervalId(null);
+                        setCurrentStep(STEPS.SOIL_RESULT);
+                      }
+                      // Ancien format de réponse (sol direct)
+                      else if (data.sol) {
+                        console.log("Ancien format de données (sol):", data);
+                        
+                        // Mettre à jour les valeurs avec les données du capteur
+                        if (data.sol.ph !== undefined) setPh(data.sol.ph);
+                        if (data.sol.humidite !== undefined) setHumidite(data.sol.humidite);
+                        if (data.sol.salinite !== undefined) setSalinite(data.sol.salinite);
+        
+                        setSoilData(data);
+                        
+                        // Arrêter le polling
+                        if (pollingIntervalId) clearInterval(pollingIntervalId);
+                        setIsListeningForSensor(false);
+                        setPollingIntervalId(null);
+                        setCurrentStep(STEPS.SOIL_RESULT);
+                      }
+                      // Format avec données brutes
+                      else if (data.ph !== undefined) {
+                        console.log("Données brutes reçues:", data);
+                        
+                        // Stocker les données brutes du capteur
+                        const sensorDataToStore = {
+                          ph: data.ph,
+                          humidite: data.humidite,
+                          salinite: data.salinite,
+                          timestamp: data.timestamp || Date.now(),
+                        };
+                        
+                        console.log("Stockage des données du capteur:", sensorDataToStore);
+                        setSensorData(sensorDataToStore);
+                        
+                        // Mettre à jour les contrôles avec les données du capteur
+                        setPh(data.ph);
+                        setHumidite(data.humidite);
+                        setSalinite(data.salinite);
+                        
+                        // Traiter les données pour obtenir le sol et les cultures
+                        try {
+                          const result = await detectSolEtCultures({
+                            ph: data.ph,
+                            humidite: data.humidite,
+                            salinite: data.salinite,
+                          });
+                          
+                          // Mettre à jour les données du sol
+                          setSoilData(result);
+                          
+                          // Arrêter le polling et passer à l'étape des résultats
+                          if (pollingIntervalId) clearInterval(pollingIntervalId);
+                          setIsListeningForSensor(false);
+                          setPollingIntervalId(null);
+                        } catch (error) {
+                          console.error(
+                            "Erreur lors du traitement des données du capteur:",
+                            error
+                          );
+                        }
+                      }
+                    }
+                  }
         } catch (error) {
           console.error("Erreur lors du polling du capteur:", error);
         }
@@ -292,6 +385,7 @@ function NewPlanContent() {
         return soilData.sol ? (
           <SoilResultStep
             soilData={soilData}
+            sensorData={sensorData}
             onContinue={() => setCurrentStep(STEPS.ZONE_SELECTION + 0.5)}
             onBack={() => setCurrentStep(STEPS.SOIL_DETECTION)}
           />

@@ -74,7 +74,7 @@ export default function PlansPage() {
         <div className="relative container mx-auto py-8 px-6">
           <div className="flex justify-between items-center">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-500 bg-clip-text text-transparent">
+              <h1 className="md:text-4xl text-2xl font-bold bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-500 bg-clip-text text-transparent">
                 Mes Plans Optimisés
               </h1>
               <p className="text-slate-600 text-lg">
@@ -86,7 +86,9 @@ export default function PlansPage() {
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                 <div className="relative flex items-center gap-2">
                   <PlusIcon size={18} className="transition-transform group-hover:rotate-90 duration-300" />
-                  Nouveau Plan
+                  <div className="md:block hidden text-sm">
+                    Nouveau Plan
+                  </div>
                 </div>
               </Button>
             </Link>
