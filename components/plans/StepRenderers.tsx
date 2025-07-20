@@ -686,6 +686,142 @@ export function PlanSelectionStep({
   );
 }
 
+export function SoilDetectionStep({
+  ph,
+  setPh,
+  humidite,
+  setHumidite,
+  salinite,
+  setSalinite,
+  isListeningForSensor,
+  isDetectingSoil,
+  onSensorDetection,
+  onSoilDetection,
+}: {
+  ph: number;
+  setPh: (value: number) => void;
+  humidite: number;
+  setHumidite: (value: number) => void;
+  salinite: number;
+  setSalinite: (value: number) => void;
+  isListeningForSensor: boolean;
+  isDetectingSoil: boolean;
+  onSensorDetection: () => void;
+  onSoilDetection: () => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl text-green-800 font-semibold mb-2">
+          Détection du sol
+        </h2>
+        <p className="text-green-800">
+          Entrez les caractéristiques du sol pour déterminer les cultures les
+          plus adaptées.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-red-700 text-sm font-medium mb-1">
+            pH du sol (0-14)
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="14"
+            step="0.1"
+            value={ph}
+            onChange={(e) => setPh(parseFloat(e.target.value))}
+            className="w-full"
+          />
+          <div className="flex justify-between text-sm text-black">
+            <span>Acide (0)</span>
+            <span className="font-medium">{ph}</span>
+            <span>Basique (14)</span>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-red-600 text-sm font-medium mb-1">
+            Taux d'humidité (%)
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={humidite}
+            onChange={(e) => setHumidite(parseFloat(e.target.value))}
+            className="w-full"
+          />
+          <div className="flex justify-between text-sm text-black">
+            <span>Sec (0%)</span>
+            <span className="font-medium">{humidite}%</span>
+            <span>Saturé (100%)</span>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-red-600 text-sm font-medium mb-1">
+            Salinité (‰)
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="40"
+            step="0.5"
+            value={salinite}
+            onChange={(e) => setSalinite(parseFloat(e.target.value))}
+            className="w-full"
+          />
+          <div className="flex justify-between text-sm text-black">
+            <span>Faible (0‰)</span>
+            <span className="font-medium">{salinite}‰</span>
+            <span>Élevée (40‰)</span>
+          </div>
+        </div>
+      </div>
+
+      {isListeningForSensor && (
+        <div className="my-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+          <LoaderWithText text="En attente des données du capteur..." />
+          <p className="text-sm text-yellow-700 mt-2">
+            Assurez-vous que votre capteur ESP32 est connecté et envoie des
+            données.
+          </p>
+        </div>
+      )}
+
+      <div className="flex justify-between items-center mt-6">
+        <button
+          className="bg-blue-600 hover:bg-blue-700 cursor-pointer font-bold h-10 md:text-base text-xs w-56 flex justify-center items-center text-white px-4 py-2 rounded disabled:bg-blue-300"
+          onClick={onSensorDetection}
+          disabled={isDetectingSoil}
+        >
+          {isListeningForSensor ? (
+            <Loader size="small" color="text-white" />
+          ) : null}
+          {isListeningForSensor
+            ? "Arrêter la détection"
+            : "Détecter avec le capteur"}
+        </button>
+        <button
+          className="bg-black hover:bg-green-700 cursor-pointer font-bold h-10 w-40 flex justify-center items-center text-white px-4 py-2 rounded disabled:bg-gray-400"
+          onClick={onSoilDetection}
+          disabled={isDetectingSoil || isListeningForSensor}
+        >
+          {isDetectingSoil ? (
+            <Loader size="small" color="text-white" />
+          ) : (
+            "Analyser le sol"
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function SoilResultStep({
   soilData,
   onContinue,

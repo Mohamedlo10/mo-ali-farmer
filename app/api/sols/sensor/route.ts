@@ -81,10 +81,21 @@ export async function GET() {
 
           console.log('Résultat de detectSolEtCultures:', result);
           
+          // Créer un objet de réponse qui inclut à la fois le résultat et les données brutes du capteur
+          const responseData = {
+            ...result,
+            sensorData: {
+              ph: latestSensorData.ph,
+              humidite: latestSensorData.humidite,
+              salinite: latestSensorData.salinite,
+              timestamp: latestSensorData.timestamp
+            }
+          };
+          
           // Effacer les données après les avoir récupérées pour éviter la réutilisation
           latestSensorData = null;
 
-          return NextResponse.json(result);
+          return NextResponse.json(responseData);
         } catch (error: any) {
           console.error('Erreur dans detectSolEtCultures:', error);
           return NextResponse.json(
